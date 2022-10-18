@@ -28,7 +28,7 @@ reduce: [Function]
         it just like some assemble operation in java stream.I guess also learn from this.
 
 the process picture:
-
+![pi](mapreduce.png)
 
 
 
