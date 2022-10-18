@@ -5,4 +5,7 @@
 
 NACOS主要学习资料：NACOS官方出得《NACOS架构与原理》
 分布式系统课程：https://www.bilibili.com/video/BV1CU4y1P7PE/?spm_id_from=333.337.search-card.all.click&vd_source=3c013a426257a5365a4de445c05ce24c
-
+labs地址：https://pdos.csail.mit.edu/6.824/
+GO搭建环境教程：https://go.dev/doc/tutorial/getting-started
+GO的初级语法教程：cd ~/go/bin; tour
+GO数据类型声明：https://go.dev/blog/declaration-syntax

@@ -6,7 +6,9 @@ paper : MapReduce: Simplified Data Processing on Large Clusters
         Google, Inc.
 
 mapReduce idea comes from the concept of language lisp's concept: map and reduce, what are them?
+
 map : [Function]
+
       map result-type function sequence &rest more-sequences
 
       The function must take as many arguments as there are sequences provided; at least one sequence must be provided.
@@ -16,6 +18,7 @@ map : [Function]
 
       it kind like java lambda expression map.I guess java also learn from this too.
 reduce: [Function]
+
         reduce function sequence &key :from-end :start :end :initial-value
 
         The reduce function combines all the elements of a sequence using a binary operation; for example, using + one
