@@ -1,0 +1,24 @@
+分布式系统课程：https://www.bilibili.com/video/BV1CU4y1P7PE/?spm_id_from=333.337.search-card.all.click&vd_source=3c013a426257a5365a4de445c05ce24c
+labs地址：https://pdos.csail.mit.edu/6.824/
+GO搭建环境教程：https://go.dev/doc/tutorial/getting-started
+GO的初级语法教程：cd ~/go/bin; tour
+GO数据类型声明：https://go.dev/blog/declaration-syntax
+GO RACE Detector: https://go.dev/blog/race-detector?spm=a2c6h.12873639.article-detail.7.51ecc5be8BXMw4
+GO WAITGROUP:
+go语言中有一个其他的工具sync.WaitGroup
+WaitGroup 对象内部有一个计数器，最初从0开始，它有三个方法：Add(), Done(), Wait() 用来控制计数器的数量。Add(n) 把计数器设置为n ，Done() 每次把计数器-1 ，wait() 会阻塞代码的运行，直到计数器地值减为0。
+使用WaitGroup 将上述代码可以修改为：
+
+func main() {
+    wg := sync.WaitGroup{}
+    wg.Add(100)
+    for i := 0; i < 100; i++ {
+        go func(i int) {
+            fmt.Println(i)
+            wg.Done()
+        }(i)
+    }
+    wg.Wait()
+}
+这里首先把wg 计数设置为100， 每个for循环运行完毕都把计数器减一，主函数中使用Wait() 一直阻塞，直到wg为零——也就是所有的100个for循环都运行完毕。相对于使用管道来说，WaitGroup 轻巧了许多。
+
