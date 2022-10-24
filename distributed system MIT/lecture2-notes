@@ -1,3 +1,33 @@
 1 介绍多线程编程，并发，并行，事件驱动机制
 2 多线程编程面临的挑战
 3 GO RACE机制
+4 在示例代码中：
+func ConcurrentMutex(url string, fetcher Fetcher, f *fetchState) {
+	f.mu.Lock()
+	already := f.fetched[url]
+	f.fetched[url] = true
+	f.mu.Unlock()
+
+	if already {
+		return
+	}
+
+	urls, err := fetcher.Fetch(url)
+	if err != nil {
+		return
+	}
+	var done sync.WaitGroup
+	for _, u := range urls {
+		done.Add(1)
+		go func(u string) {
+		// defer done.Done() 这样的用法是说在SURROUNDING FUNCTION执行完毕之前，一定会先执行这个方法，
+		// 无论周围的方法是用什么样的方式结束的。这样是防止在执行ConcurrentMutex方法时因为意外退出，比如NULLPOINTER EXCEPTION
+		// 或者是其他的异常导致退出，而不是通过正常的RETURN进行返回的时候，done.Done() 将永远不会被执行，这样的话done.Wait()将
+		// 一直等待，阻塞在这里。
+			defer done.Done()
+			ConcurrentMutex(u, fetcher, f)
+		}(u)
+	}
+	done.Wait()
+	return
+}
