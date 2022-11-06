@@ -1,8 +1,11 @@
 1 介绍多线程编程，并发，并行，事件驱动机制
 2 多线程编程面临的挑战
 3 GO RACE机制
-4 在示例代码中：
+4 在示例代码中,使用了两种方式来实现多线程爬虫，第一种方式是ConcurrentMutex方法：在读取MAP的时候加锁，防止两个线程同时读取到一个未爬取状态的URL,并对其进行
+重复爬取
 func ConcurrentMutex(url string, fetcher Fetcher, f *fetchState) {
+	// 实验证明，如果去掉f.mu.Lock()和f.mu.Unlock()，会概率性的报错：fatal error: concurrent map read and map write。
+	这样的报错在jAVA中操作一些非线程安全的类的时候比如ARRAYLIST,也会抱类似的错误。
 	f.mu.Lock()
 	already := f.fetched[url]
 	f.fetched[url] = true
@@ -16,6 +19,8 @@ func ConcurrentMutex(url string, fetcher Fetcher, f *fetchState) {
 	if err != nil {
 		return
 	}
+	// 关于为什么这里要使用var done sync.WaitGroup这个机制，如果不使用的话，那么这里爬取任务可能在并发进行的时候，主线程已经开始
+	继续处理其他的任务去了，这里根据实际情况需要来进行使用该机制或者不使用。在jAVA中类似的机制是：ExecutorService的awaitTermination方法
 	var done sync.WaitGroup
 	for _, u := range urls {
 		done.Add(1)
@@ -31,3 +36,84 @@ func ConcurrentMutex(url string, fetcher Fetcher, f *fetchState) {
 	done.Wait()
 	return
 }
+5 第二种方式是ConcurrentChannel，使用channel机制：
+//
+// Concurrent crawler with channels
+//
+
+func worker(url string, ch chan []string, fetcher Fetcher) {
+	urls, err := fetcher.Fetch(url)
+	if err != nil {
+		ch <- []string{}
+	} else {
+		ch <- urls
+	}
+}
+
+func coordinator(ch chan []string, fetcher Fetcher) {
+	n := 1
+	fetched := make(map[string]bool)
+	for urls := range ch {
+		for _, u := range urls {
+			if fetched[u] == false {
+				fetched[u] = true
+				n += 1
+				fmt.Println(n)
+				go worker(u, ch, fetcher)
+			}
+		}
+		n -= 1
+		fmt.Println(n)
+		if n == 0 {
+			break
+		}
+	}
+}
+
+func ConcurrentChannel(url string, fetcher Fetcher) {
+	ch := make(chan []string)
+	go func() {
+		ch <- []string{url}
+	}()
+	coordinator(ch, fetcher)
+}
+
+其中for _, u := range urls这一行会返回什么呢？我们看一个例子：
+func main() {
+    c := make(chan string, 2)
+    c <- "hello"
+    c <- "world"
+
+    time.AfterFunc(time.Microsecond, func() {
+        close(c)
+    })
+
+    for e := range c {
+        fmt.Printf("element: %s\n", e)
+    }
+}
+返回结果：
+element: hello
+element: world
+一句话理解：range 作用于 channel 时，会返回 channel 中所有的元素，如果 channel 中没有元素，则会阻塞等待，直到 channel 被关闭。
+
+调用ConcurrentChannel会返回结果：
+=== ConcurrentChannel ===
+2
+1
+found:   http://golang.org/
+2
+3
+2
+missing: http://golang.org/cmd/
+1
+found:   http://golang.org/pkg/
+2
+3
+found:   http://golang.org/pkg/fmt/
+2
+1
+found:   http://golang.org/pkg/os/
+0
+
+
