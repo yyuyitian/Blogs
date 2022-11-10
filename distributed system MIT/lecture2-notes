@@ -1,8 +1,9 @@
 1 介绍多线程编程，并发，并行，事件驱动机制
 2 多线程编程面临的挑战
 3 GO RACE机制
+<<<<<<< HEAD
 4 在示例代码中,使用了两种方式来实现多线程爬虫，第一种方式是ConcurrentMutex方法：在读取MAP的时候加锁，防止两个线程同时读取到一个未爬取状态的URL,并对其进行
-重复爬取
+重复爬取.
 func ConcurrentMutex(url string, fetcher Fetcher, f *fetchState) {
 	// 实验证明，如果去掉f.mu.Lock()和f.mu.Unlock()，会概率性的报错：fatal error: concurrent map read and map write。
 	这样的报错在jAVA中操作一些非线程安全的类的时候比如ARRAYLIST,也会抱类似的错误。
